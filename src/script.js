@@ -4,6 +4,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 //Cette ligne importe la librairie lil-gui qui permet de d'implémenter facilement une interface de debug
 import * as dat from "lil-gui";
+//On importe cannon.js
+import CANNON from "cannon";
 
 //On modifie certains paramètres par défaut de Three.js
 THREE.ColorManagement.enabled = false;
@@ -73,8 +75,23 @@ floor.receiveShadow = true;
 floor.rotation.x = -Math.PI * 0.5;
 scene.add(floor);
 
+//Ajoutez la partie physique ici
+
+const world = new CANNON.World();
+world.gravity.set(0, -9.82, 0);
+
+const sphereShape = new CANNON.Sphere(0.5);
+
+const sphereBody = new CANNON.Body({
+  mass: 1,
+  position: new CANNON.Vec3(0, 3, 0),
+  shape: sphereShape,
+});
+
+world.addBody(sphereBody);
+
 /**
- * Lights
+ * Lumières
  */
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(ambientLight);
@@ -150,6 +167,8 @@ const clock = new THREE.Clock();
 
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
+  const deltaTime = elapsedTime - oldElapsedTime;
+  oldElapsedTime = elapsedTime;
 
   // On met à jour les controles
   controls.update();
