@@ -43,7 +43,7 @@ const environmentMapTexture = cubeTextureLoader.load([
 ]);
 
 /**
- * Test sphere
+ * Sphère
  */
 const sphere = new THREE.Mesh(
   new THREE.SphereGeometry(0.5, 32, 32),
@@ -59,7 +59,7 @@ sphere.position.y = 3;
 scene.add(sphere);
 
 /**
- * Floor
+ * Sol
  */
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(10, 10),
@@ -164,11 +164,17 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
  * Animation
  */
 const clock = new THREE.Clock();
+let oldElapsedTime = 0;
 
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
   const deltaTime = elapsedTime - oldElapsedTime;
   oldElapsedTime = elapsedTime;
+
+  //On met à jour le monde physique
+  world.step(1 / 60, deltaTime, 3);
+
+  sphere.position.copy(sphereBody.position);
 
   // On met à jour les controles
   controls.update();
