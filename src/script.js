@@ -43,22 +43,6 @@ const environmentMapTexture = cubeTextureLoader.load([
 ]);
 
 /**
- * Sphère
- */
-const sphere = new THREE.Mesh(
-  new THREE.SphereGeometry(0.5, 32, 32),
-  new THREE.MeshStandardMaterial({
-    metalness: 0.3,
-    roughness: 0.4,
-    envMap: environmentMapTexture,
-    envMapIntensity: 0.5,
-  })
-);
-sphere.castShadow = true;
-sphere.position.y = 3;
-scene.add(sphere);
-
-/**
  * Sol
  */
 const floor = new THREE.Mesh(
@@ -80,15 +64,63 @@ scene.add(floor);
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0);
 
-const sphereShape = new CANNON.Sphere(0.5);
-
-const sphereBody = new CANNON.Body({
-  mass: 1,
-  position: new CANNON.Vec3(0, 3, 0),
-  shape: sphereShape,
+const planeShape = new CANNON.Plane();
+const floorBody = new CANNON.Body({
+  mass: 0,
+  position: new CANNON.Vec3(0, 0, 0),
+  shape: planeShape,
 });
+floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5);
+world.addBody(floorBody);
 
-world.addBody(sphereBody);
+const objectsToUpdate = [];
+
+const createSphere = (radius, position) => {
+  //partie visuelle
+  const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(radius, 32, 32),
+    new THREE.MeshStandardMaterial({
+      metalness: 0.3,
+      roughness: 0.4,
+      envMap: environmentMapTexture,
+      envMapIntensity: 0.5,
+    })
+  );
+  sphere.castShadow = true;
+  sphere.position.copy(position);
+  scene.add(sphere);
+
+  //partie physique
+  const sphereShape = new CANNON.Sphere(radius);
+  const sphereBody = new CANNON.Body({
+    mass: 1,
+    position: new CANNON.Vec3(0, 3, 0),
+    shape: sphereShape,
+  });
+  sphereBody.position.copy(position);
+
+  world.addBody(sphereBody);
+
+  // Save in objects to update
+  objectsToUpdate.push({
+    mesh: sphere,
+    body: sphereBody,
+  });
+};
+
+let cubeSize = 8;
+let sphereSize = 0.5;
+
+for (let x = 0; x < cubeSize; x++) {
+  for (let y = 0; y < cubeSize; y++) {
+    for (let z = 0; z < cubeSize; z++) {
+      let posX = x * sphereSize * 2.05; // Espacement entre les sphères en fonction de leur taille
+      let posY = y * sphereSize * 2.05;
+      let posZ = z * sphereSize * 2.05;
+      createSphere(sphereSize, { x: posX, y: posY, z: posZ });
+    }
+  }
+}
 
 /**
  * Lumières
@@ -174,7 +206,12 @@ const tick = () => {
   //On met à jour le monde physique
   world.step(1 / 60, deltaTime, 3);
 
-  sphere.position.copy(sphereBody.position);
+  //Pour chaque objet dans notre tableau, ont met à jour sa position visuelle en fonction de sa position physique
+  for (const object of objectsToUpdate) {
+    object.mesh.position.copy(object.body.position);
+  }
+
+  //[...]
 
   // On met à jour les controles
   controls.update();
