@@ -1,6 +1,6 @@
 # Three.js-workshop
 
-Base on Three.js journey by Bruno Simon
+Based on Three.js journey by Bruno Simon
 
 ## Setup
 
