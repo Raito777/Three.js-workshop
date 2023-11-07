@@ -1,5 +1,7 @@
 # Three.js-workshop
 
+Base on Three.js journey by Bruno Simon
+
 ## Setup
 
 Download [Node.js](https://nodejs.org/en/download/).
